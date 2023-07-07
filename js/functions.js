@@ -8,21 +8,13 @@ const DECIMAL_BASE = 10;
  * Если длина меньше или равна значению maxLength, возвращается true.
  * В противном случае возвращается false.
  */
-const checkStringLength = (str, maxLength) => str.length <= maxLength;
-
-// Проверка работы функции checkStringLength
-// Cтрока короче 20 символов
-// console.log(checkStringLength('проверяемая строка', 20)); // true
-// Длина строки ровно 18 символов
-// console.log(checkStringLength('проверяемая строка', 18)); // true
-// Строка длиннее 10 символов
-// console.log(checkStringLength('проверяемая строка', 10)); // false
+export const checkStringLength = (str, maxLength) => str.length <= maxLength;
 
 /*
  * Функция проверяет, является ли строка str палиндроном.
  * При проверке не учитывается регистр символов, удаляются пробелы.
  */
-const isPalindrome = (str) => {
+export const isPalindrome = (str) => {
   // По умолчанию считаем, что строка - полиндром
   let result = true;
   // Удаляем из строки пробелы, приводим к верхнему регистру
@@ -45,20 +37,10 @@ const isPalindrome = (str) => {
   return result;
 };
 
-// Проверка работы функции isPalindrome
-// Строка является палиндромом
-// console.log(isPalindrome('топот')); // true
-// Несмотря на разный регистр, тоже палиндром
-// console.log(isPalindrome('ДовОд')); // true
-// Это не палиндром
-// console.log(isPalindrome('Кекс')); // false
-// Это палиндром
-// console.log(isPalindrome('Лёша на полке клопа нашёл ')); // true
-
 /*
  * Функция извлекает цифры из строки str и возвращает их в виде целого числа
  */
-const extractDigitsFromStr = (str) => {
+export const extractDigitsFromStr = (str) => {
   // По умолчанию результат - пустая строка
   let result = '';
   // На случай если было передано число, оно преобразуется в строку
@@ -74,12 +56,68 @@ const extractDigitsFromStr = (str) => {
   return parseInt(result, DECIMAL_BASE);
 };
 
-// Проверка работы функции extractDigitsFromStr
-//console.log(extractDigitsFromStr('2023 год')); // 2023
-//console.log(extractDigitsFromStr('ECMAScript 2022')); // 2022
-//console.log(extractDigitsFromStr('1 кефир, 0.5 батона')); // 105
-//console.log(extractDigitsFromStr('агент 007')); // 7
-//console.log(extractDigitsFromStr('а я томат')); // NaN
-//console.log(extractDigitsFromStr(2023)); // 2023
-//console.log(extractDigitsFromStr(-1)); // 1
-//console.log(extractDigitsFromStr(1.5)); // 15
+/*
+ * Функция возвращает случайное положительное целое число
+ * в диапазоне между числами value1 и value2
+ */
+export const getRandomPositiveInt = (value1, value2) => {
+  // Значения параметров берутся по модулю
+  value1 = Math.abs(value1);
+  value2 = Math.abs(value2);
+  // Определяется минимальное значение из двух параметров
+  // Заодно выполняется округление (если значение параметра не целое число)
+  const minValue = Math.ceil(Math.min(value1, value2));
+  // Определяется длина диапазона для поиска случайного целого числа
+  // Это разница между максимальным и минимальным значением, плюс 1
+  const interval = Math.floor(Math.max(value1, value2)) - minValue + 1;
+  // Выполняется поиск случайного значения в диапазоне и его округление
+  return Math.floor(interval * Math.random() + minValue);
+};
+
+/*
+ * Частный случай предыдущей функции, возвращает случайное булево значение
+ */
+
+export const getRandomBoolean = () => (getRandomPositiveInt(0, 1) === 1);
+
+/*
+ * Функция возвращает случайный индекс массива arr
+ */
+export const getRandomArrayIndex = (arr) => getRandomPositiveInt(0, arr.length - 1);
+
+/*
+ * Функция возвращает массив из последовательных целых чисел
+ * в диапазоне от параметра from до параметра to.
+ * Функция нужна, чтобы потом можно было перемешать значения в случайном порядке и получить
+ * массив неповторяющихся перемешанных целых чисел
+ */
+const getIntNumberArray = (from, to) => {
+  const result = [];
+  // Здесь все просто, в массив в цикле последовательно добавляются целые числа
+  for (let i = from; i <= to; i++) {
+    result.push(i);
+  }
+  return result;
+};
+
+/*
+ * Функция возвращает массив из целых чисел в диапазоне от параметра from до параметра to
+ * в случайном порядке. Используется для того, чтобы перемешивать фотографии,
+ * авторов комментариев и т.д.
+ */
+export const getRandomIntNumberArray = (from, to) => {
+  // Сначала получаем последовательный масств целых чисел
+  const source = getIntNumberArray(from, to);
+  const result = [];
+  // Далее в цикле выбираем элементы со случайными индексами
+  // и переносим их в новый массив. Таким образом они и перемешиваются
+  while (source.length > 0) {
+    // Выбор случайного индекса
+    const randomIndex = getRandomArrayIndex(source);
+    // Добавление его в новый массив
+    result.push(source[randomIndex]);
+    // Удаление из старого массива
+    source.splice(randomIndex, 1);
+  }
+  return result;
+};

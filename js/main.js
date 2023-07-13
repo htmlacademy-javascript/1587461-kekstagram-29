@@ -1,3 +1,3 @@
-import {createPhotos} from './data.js';
-const photos = createPhotos();
-console.log(photos);
+import {showPictures} from './pictures.js';
+
+showPictures();

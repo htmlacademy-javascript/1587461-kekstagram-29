@@ -1,38 +1,50 @@
-import {createPhotos} from './data.js';
+import {setImgProps} from './functions.js';
 
 /*
  * Функция на основе шаблона #picture создает и возвращает DOM-элемент, соответствующей фотографии
  */
 const createPictureElement = () => {
-  const template = document.querySelector('#picture').content.querySelector('.picture');
-  return template.cloneNode(true);
+  const pictureTemplate = document.querySelector('#picture')
+    .content.querySelector('.picture');
+  return pictureTemplate.cloneNode(true);
 };
 
 /*
- * Функция на основе данных создает и заполняет DOM-элементы фотографий.
- * В качестве результата возвращается DocumentFragment
+ * Функция устанавливает значения свойст для созданной фотографии pictureElement
  */
-const createPicturesFragment = () => {
-  const fragment = document.createDocumentFragment();
-  const photos = createPhotos();
-  photos.forEach(({url, description, likes, comments}) => {
-    const element = createPictureElement();
-    element.querySelector('.picture__img').src = url;
-    element.querySelector('.picture__img').alt = description;
-    element.querySelector('.picture__likes').textContent = likes;
-    element.querySelector('.picture__comments').textContent = comments.length;
-    fragment.appendChild(element);
+const processPicture = (pictureElement, {url, description, likes, comments}) => {
+  // Свойства самого изображения (источник и alt-текст)
+  setImgProps(pictureElement.querySelector('.picture__img'), url, description);
+  // Количество лайков
+  pictureElement.querySelector('.picture__likes').textContent = likes;
+  // Количество комментариев
+  pictureElement.querySelector('.picture__comments').textContent = comments.length;
+};
+
+/*
+ * Функция на основе данных создает DOM-элемент фотографии.
+ */
+const createPicture = (photo, showBigPicture) => {
+  const pictureElement = createPictureElement();
+  processPicture(pictureElement, photo);
+  pictureElement.addEventListener('click', () => {
+    showBigPicture(photo);
   });
-  return fragment;
+  return pictureElement;
 };
 
 /*
- * Функция отображает фотографии на странице
+ * Функция отображает фотографии на странице.
+ * Через параметр photos передается массив данных о фотографиях,
+ * параметр showBigPicture - ссылка на функцию, вызываемую при клике на миниатюре.
  */
-const showPictures = () => {
-  const container = document.querySelector('.pictures');
-  container.appendChild(createPicturesFragment());
+const showPictures = (photos, showBigPicture) => {
+  const pictureContainer = document.querySelector('.pictures');
+  const pictureFragment = document.createDocumentFragment();
+  photos.forEach((photo) => {
+    pictureFragment.append(createPicture(photo, showBigPicture));
+  });
+  pictureContainer.appendChild(pictureFragment);
 };
 
 export {showPictures};
-

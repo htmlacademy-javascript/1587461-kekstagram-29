@@ -1,63 +1,35 @@
-import {setImgProps, isEscButton} from './functions.js';
+import {setImgProps, isEscButton, showHideObject,
+  showHideModalElement} from './functions.js';
 
 // Константа задает количество комментариев,
 // выводимых при показе окна / одном нажатии на кнопку (не более чем)
 const COMMENTS_PER_OUTPUT = 5;
 
 // Окно для отображения большой фотографии
-const bigPicture = document.querySelector('.big-picture');
+const bigPictureElement = document.querySelector('.big-picture');
 // Иконка "крестик" закрытия окна
-const closeButton = document.querySelector('.big-picture__cancel');
+const closeButtonElement = document.querySelector('.big-picture__cancel');
 // Комментарии вставляются в блок .social__comments.
-const pictureComments = document.querySelector('.social__comments');
+const commentsListElement = document.querySelector('.social__comments');
 // Блок загрузки новых комментариев .comments-loader
-const commentsLoader = document.querySelector('.comments-loader');
+const commentsLoaderElement = document.querySelector('.comments-loader');
 
-// Переменная под функцию, которая доабвляет комментарии под фотография
+// Переменная под шаблон для комментария
+// для его дальнейшего размножения и добавления в список
+let commentTemplateElement;
+
+// Переменная под функцию, которая добавляет комментарии под фотография
 // Ссылка на функцию записывается в переменную при открытии
 let processComments;
-
-/*
- * Небольшая сервисная функция, выполняющая отображение / скрытие
- * объекта obj, в зависимости от значения параметра visible
- */
-const showHideObject = (obj, visible) => {
-  if (visible) {
-    obj.classList.remove('hidden');
-  } else {
-    obj.classList.add('hidden');
-  }
-};
-
-/*
- * Функция добавляет / удаляет класс modal-open тегу body страницы.
- * Используется для того, чтобы контейнер с фотографиями позади не прокручивался при скролле.
- */
-const setShowModal = (modal = true) => {
-  // Тег body страницы
-  const body = document.querySelector('body');
-  if (modal) {
-    body.classList.add('modal-open');
-  } else {
-    body.classList.remove('modal-open');
-  }
-};
 
 /*
  * Функция создает комментарий по информации (аватар, имя автора, текст)
  */
 const getComment = ({avatar, name, message}) => {
-  const commentHTML = `
-    <img
-        class="social__picture"
-        src=${avatar}
-        alt="${name}"
-        width="35" height="35">
-    <p class="social__text">${message}</p>
-              `;
-  const commentElement = document.createElement('li');
-  commentElement.classList.add('social__comment');
-  commentElement.innerHTML = commentHTML;
+  const commentElement = commentTemplateElement.cloneNode(true);
+  const avatarElement = commentElement.querySelector('.social__picture');
+  setImgProps(avatarElement, avatar, name);
+  commentElement.querySelector('.social__text').textContent = message;
   return commentElement;
 };
 
@@ -67,8 +39,8 @@ const getComment = ({avatar, name, message}) => {
  */
 const setCounterText = (visible, total) => {
   // Блок счётчика комментариев .social__comment-count
-  const commentsCounter = document.querySelector('.social__comment-count');
-  commentsCounter.innerHTML =
+  const commentsCounterElement = document.querySelector('.social__comment-count');
+  commentsCounterElement.innerHTML =
     `${visible} из <span class="comments-count">${total}</span>`;
 };
 
@@ -84,7 +56,7 @@ const appendComments = (comments) => {
     commentFragment.append(getComment(comment));
   });
   // сгенерированный фрагмент комментариев добавляется в нужное место на странице
-  pictureComments.append(commentFragment);
+  commentsListElement.append(commentFragment);
   return comments.length;
 };
 
@@ -107,7 +79,7 @@ const initComments = (comments) => {
     setCounterText(visibleCommentsCount, comments.length);
     // Если все комментарии выведены, то кнопка публикации скрывается
     if (visibleCommentsCount === comments.length) {
-      showHideObject(commentsLoader, false);
+      showHideObject(commentsLoaderElement, false);
     }
   };
 };
@@ -118,23 +90,26 @@ const initComments = (comments) => {
  */
 const processBigPicture = ({url, description, likes, comments}) => {
   // Для удобства в переменную записываем ссылку на само изображение
-  const bigImage = bigPicture.querySelector('.big-picture__img img');
+  const bigImageElement =
+    bigPictureElement.querySelector('.big-picture__img img');
   // Установка свойств изображения
   //Адрес изображения url подставляется как src изображения внутри блока .big-picture__img
   // Описание description добавляется в alt
-  setImgProps(bigImage, url, description);
+  setImgProps(bigImageElement, url, description);
   // Количество лайков likes подставляется как текстовое содержание элемента .likes-count.
-  bigPicture.querySelector('.likes-count').textContent = likes;
+  bigPictureElement.querySelector('.likes-count').textContent = likes;
   // Описание фотографии description вставляется строкой в блок .social__caption
-  bigPicture.querySelector('.social__caption').textContent = description;
-  // Заполнение комментариев под фотографией
+  bigPictureElement.querySelector('.social__caption').textContent = description;
+  // Ищем и записываем в переменную первый из имеющихся комментариев в списке
+  // Далее он будет использоваться как шаблон для размножения на реальный комментарии
+  commentTemplateElement = document.querySelector('.social__comment');
   // Очистка имеющегося списка комментариев под фотографией
-  pictureComments.innerHTML = '';
+  commentsListElement.innerHTML = '';
   // Отображение / скрытие кнопки публикации следующей порции комментариев
   // В момент инициализации показывать эту кнопку имеет смысл только в том случае,
   // если количество комментариев в массиве больше одной выводимой порции.
   // В противном случае кнопка не будет ражиматься ни разу и ее можно не показывать
-  showHideObject(commentsLoader, comments.length > COMMENTS_PER_OUTPUT);
+  showHideObject(commentsLoaderElement, comments.length > COMMENTS_PER_OUTPUT);
   // В переменную помещается ссылка на функцию добавления комментариев
   processComments = initComments(comments);
   if (comments.length > 0) {
@@ -145,6 +120,7 @@ const processBigPicture = ({url, description, likes, comments}) => {
     setCounterText(0, 0);
   }
 };
+
 /*
  * Функция выполняет отрисовку окна с полноразмерным изображением.
  * Предназначена для вызова по клику на миниатюре фотографии.
@@ -152,49 +128,43 @@ const processBigPicture = ({url, description, likes, comments}) => {
  * об отображаемом изображении
  */
 const showBigPicture = (pictureData) => {
-  // Для отображения окна у элемента .big-picture удаляется класс hidden
-  showHideObject(bigPicture, true);
-  // После открытия окна тегу <body> необходимо добавить класс modal-open,
-  // чтобы контейнер с фотографиями позади не прокручивался при скролле.
-  setShowModal();
+  // Отображение модального окна
+  showHideModalElement(bigPictureElement, true, onEscKeyDown);
   // Запуск отдельной функции для заполнения окна изображения данными
   processBigPicture(pictureData);
-  // Обработчик закрытия окна по кнопке Esc
-  document.addEventListener('keydown', onEscKeyDown);
+  // Добавление обработчика для закрытия окна
+  closeButtonElement.addEventListener('click', onCloseButtonClick);
+  // Добавление обработчика для отображения дополнительной порции комментариев
+  commentsLoaderElement.addEventListener('click', onCommentsLoaderClick);
 };
 
 /*
  * Функция скрывает окно с полноразмерным изображением
  */
 const hideBigPicture = () => {
-  // Для скрытия окна у элементу .big-picture добавляется класс hidden
-  showHideObject(bigPicture, false);
-  // У тега <body> нужно удалить класс modal-open,
-  setShowModal(false);
-  // Обработчик закрытия окна по кнопке Esc больше не нужен
-  document.removeEventListener('keydown', onEscKeyDown);
+  showHideModalElement(bigPictureElement, false, onEscKeyDown);
+  // Удаление обработчика для закрытия окна
+  closeButtonElement.removeEventListener('click', onCloseButtonClick);
+  // Удаление обработчика для отображения дополнительной порции комментариев
+  commentsLoaderElement.removeEventListener('click', onCommentsLoaderClick);
 };
 
 /*
  * Обработчик события нажатия на кнопку "крестик" в окне просмотра фотографии
  */
-const onCloseButtonClick = () => {
-  // Тут все просто - закрытие окна
-  // Отдельная функция создана исключительно для эстетики кода
+function onCloseButtonClick() {
   hideBigPicture();
-};
+}
 
 /*
  * Обработчик события нажатия на кнопку публикации следующей порции комментариев
  */
-const onCommentsLoaderClick = () => {
+function onCommentsLoaderClick() {
   processComments();
-};
+}
 
 /*
  * Обработчик нажатия клавиши Esc для закрытия окна просмотра фотогарфии.
- * Здесь нельзя использовать стрелку, можно только декларацию,
- * так как функция используется выше по коду. В противном случае будет ошибка.
  */
 function onEscKeyDown(evt) {
   if (isEscButton(evt)) {
@@ -202,10 +172,5 @@ function onEscKeyDown(evt) {
     hideBigPicture();
   }
 }
-
-// Добавление обработчика для закрытия окна
-closeButton.addEventListener('click', onCloseButtonClick);
-// Добавление обработчика для отображения дополнительной порции комментариев
-commentsLoader.addEventListener('click', onCommentsLoaderClick);
 
 export {showBigPicture};

@@ -77,7 +77,6 @@ export const getRandomPositiveInt = (value1, value2) => {
 /*
  * Частный случай предыдущей функции, возвращает случайное булево значение
  */
-
 export const getRandomBoolean = () => (getRandomPositiveInt(0, 1) === 1);
 
 /*
@@ -124,17 +123,79 @@ export const getRandomIntNumberArray = (from, to) => {
 
 /*
  * Небольшая сервисная функция, которая устанавливает два значения свойств
- * для переданного в качестве параметра img объекта - изображения.
+ * для переданного в качестве параметра imgElement объекта - изображения.
  * Значения свойств передаются через параметры src и alt.
  * Такой код встречается в проекте несколько раз в разных модулях,
  * поэтому был вынесен в отдельную функцию
  */
-export const setImgProps = (img, src, alt) => {
-  img.src = src;
-  img.alt = alt;
+export const setImgProps = (imgElement, src, alt) => {
+  imgElement.src = src;
+  imgElement.alt = alt;
 };
 
 /*
  * Функция проверяет, что была нажата клавиша Escape на основе переданного события
  */
 export const isEscButton = (evt) => evt.key === 'Escape';
+
+/*
+ * Функция выполняет отображение / скрытие dom-элемента, переданного
+ * через аргумент element, в зависимости от значения параметра visible
+ */
+export const showHideObject = (element, visible) => {
+  if (visible) {
+    element.classList.remove('hidden');
+  } else {
+    element.classList.add('hidden');
+  }
+};
+
+/*
+ * Функция модально показывает / скрывает dom-элемент, передаваемый через
+ * параметр element. Видимость определяется булевым параметром visible.
+ * Через параметр onKeyDown передается ссылка на обработчик события
+ * нажатия клавиш. Используется для показа большой фотографии, формы
+ * изображения.
+ */
+export const showHideModalElement = (element, visible, onKeyDown) => {
+  const bodyElement = document.querySelector('body');
+  // Собственно отображение / скрытие элемента
+  showHideObject(element, visible);
+  // Помимо этого еще необходимо добавлять / удалять класс modal-open тегу body страницы
+  // Это нужно для того, чтобы страница позади не прокручивалась при скроле
+  // Наконец, устанавливается / удаляется обработчик события нажатия на клавишу
+  if (visible) {
+    bodyElement.classList.add('modal-open');
+    document.addEventListener('keydown', onKeyDown);
+
+  } else {
+    bodyElement.classList.remove('modal-open');
+    document.removeEventListener('keydown', onKeyDown);
+  }
+};
+
+/*
+ * Функция определяет, находится ли фокус на переданном через параметр элементе
+ */
+export const isFocusedElement = (element) => document.activeElement === element;
+
+/*
+ * Функция выполняет проверку наличия дубликатов в массиве values.
+ * Если дубликаты найдены, то возвращается значение true.
+ * Второй необязательный параметр позволяет выбрать: учитывать регистр или нет
+ */
+export const checkArrayHasDuplicates = (values, caseSensitive = false) => {
+  let checkValues = values;
+  // Если поиск дубликатов выполняется без учета регистра,
+  // то все элементы массива приводятся к одному регистру (нижнему)
+  if (!caseSensitive) {
+    checkValues = checkValues.map((value) => value.toLowerCase());
+  }
+  // Проще всего получить только уникальные элементы массива,
+  // если преобразовать его во множество.
+  // Размер множества - количество уникальных элементов
+  const distinctCount = new Set(checkValues).size;
+  // Если количество уникальных элементов меньше общего количества,
+  // значит есть дубликаты
+  return distinctCount < checkValues.length;
+};

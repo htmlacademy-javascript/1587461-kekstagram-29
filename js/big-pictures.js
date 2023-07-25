@@ -1,5 +1,5 @@
 import {setImgProps, isEscButton, showHideObject,
-  showHideModalElement} from './functions.js';
+  showHideModalElement, processEvents} from './functions.js';
 
 // Константа задает количество комментариев,
 // выводимых при показе окна / одном нажатии на кнопку (не более чем)
@@ -13,6 +13,16 @@ const closeButtonElement = document.querySelector('.big-picture__cancel');
 const commentsListElement = document.querySelector('.social__comments');
 // Блок загрузки новых комментариев .comments-loader
 const commentsLoaderElement = document.querySelector('.comments-loader');
+
+// Описание элементов и их обработчиков событий в виде массива объектов.
+// Добавляться и удаляться они будут при помощи специальной функции
+// при показе и закрытии модального окна.
+const events = [
+  // Обработчик закрытия окна по крестику
+  {element: closeButtonElement, type: 'click', listener: onCloseButtonClick},
+  // Обработчик для отображения дополнительной порции комментариев
+  {element: commentsLoaderElement, type: 'click', listener: onCommentsLoaderClick},
+];
 
 // Переменная под шаблон для комментария
 // для его дальнейшего размножения и добавления в список
@@ -132,10 +142,8 @@ const showBigPicture = (pictureData) => {
   showHideModalElement(bigPictureElement, true, onEscKeyDown);
   // Запуск отдельной функции для заполнения окна изображения данными
   processBigPicture(pictureData);
-  // Добавление обработчика для закрытия окна
-  closeButtonElement.addEventListener('click', onCloseButtonClick);
-  // Добавление обработчика для отображения дополнительной порции комментариев
-  commentsLoaderElement.addEventListener('click', onCommentsLoaderClick);
+  // Добавление необходимых обработчиков событий на элементы формы
+  processEvents(events, true);
 };
 
 /*
@@ -143,10 +151,8 @@ const showBigPicture = (pictureData) => {
  */
 const hideBigPicture = () => {
   showHideModalElement(bigPictureElement, false, onEscKeyDown);
-  // Удаление обработчика для закрытия окна
-  closeButtonElement.removeEventListener('click', onCloseButtonClick);
-  // Удаление обработчика для отображения дополнительной порции комментариев
-  commentsLoaderElement.removeEventListener('click', onCommentsLoaderClick);
+  // Удаление обработчиков при закрытии окна
+  processEvents(events, false);
 };
 
 /*

@@ -1,5 +1,12 @@
 import {isEscButton, isFocusedElement, showHideModalElement,
-  checkArrayHasDuplicates} from './functions.js';
+  checkArrayHasDuplicates, processEvents} from './functions.js';
+
+import {initImageScale, setImageScale,
+  incImageScale} from './image-scale.js';
+
+import {initImageEffects, addSliderEventListener, removeSliderEventListener,
+  changeEffect} from './image-effect.js';
+
 
 // Хэштеги разделяются пробелами в списке
 const HASHTAG_SEPARATOR = ' ';
@@ -20,6 +27,29 @@ const hashtagFieldElement = document.querySelector('.text__hashtags');
 const commentFieldElement = document.querySelector('.text__description');
 const closeButtonElement = document.querySelector('#upload-cancel');
 
+// Изображение предварительного просмотра
+const imageElement = document.querySelector('.img-upload__preview');
+// Кнопка увеличения размера изображения
+const enlargeButtonElement = document.querySelector('.scale__control--bigger');
+// Кнопка уменьшения размера изображения
+const reduceButtonElement = document.querySelector('.scale__control--smaller');
+
+// Описание элементов и их обработчиков событий в виде массива объектов.
+// Добавляться и удаляться они будут при помощи специальной функции
+// при показе и закрытии модального окна.
+const events = [
+  // Событие submit формы
+  {element: formElement, type: 'submit', listener: onFormSubmit},
+  // Щелчок по крестику для закрытия модального окна
+  {element: closeButtonElement, type: 'click', listener: onCloseButtonClick},
+  // Щелчок на кнопку увеличения масштаба
+  {element: enlargeButtonElement, type: 'click', listener: onEnlargeButtonClick},
+  // Щелчок на кнопку уменьшения масштаба
+  {element: reduceButtonElement, type: 'click', listener: onReduceButtonClick},
+  // Обработчик изменения в форме для того, чтобы поймать изменение эффекта
+  {element: formElement, type: 'change', listener: onFormChange}
+];
+
 // Ссылка на объект Pristine для выполнения проверки ввода в форму
 let pristine;
 
@@ -29,10 +59,10 @@ let pristine;
 const showModalOverlay = () => {
   // Вывод модальной формы
   showHideModalElement(overlayElement, true, onEscKeyDown);
-  // Добавление необходимых обработчиков на submit формы
-  formElement.addEventListener('submit', onFormSubmit);
-  // и нажатие "крестика" закрытия
-  closeButtonElement.addEventListener('click', onCloseButtonClick);
+  // Добавление необходимых обработчиков
+  processEvents(events, true);
+  // Добавление обработчика события для слайдера эффектов
+  addSliderEventListener();
 };
 
 /*
@@ -43,11 +73,16 @@ const hideModalOverlay = () => {
   formElement.reset();
   // Сброс ошибок формы
   pristine.reset();
+  // Сброс масштаба изображения
+  setImageScale();
+  // Сброс настроек эффектов
+  changeEffect();
   // Скрытие модального окна с формой
   showHideModalElement(overlayElement, false, onEscKeyDown);
   // Удаление назначенных обработчиков
-  formElement.removeEventListener('submit', onFormSubmit);
-  closeButtonElement.removeEventListener('click', onCloseButtonClick);
+  processEvents(events, false);
+  // Удаление обработчика события изменения слайдера
+  removeSliderEventListener();
 };
 
 /*
@@ -90,6 +125,31 @@ function onEscKeyDown(evt) {
 function onFormSubmit(evt) {
   if (!pristine.validate()) {
     evt.preventDefault();
+  }
+}
+
+/*
+ * Обработчик нажания на кнопку увеличения масштаба
+ */
+function onEnlargeButtonClick() {
+  incImageScale(1);
+}
+
+/*
+ * Обработчик нажания на кнопку уменьшения масштаба
+ */
+function onReduceButtonClick() {
+  incImageScale(-1);
+}
+
+/*
+ * Обработчик события изменения в форме
+ */
+function onFormChange(evt) {
+  // Отлавливаем изменение эффекта
+  // и вызываем соответствующую функцию для настройки изображения
+  if (evt.target.classList.contains('effects__radio')) {
+    changeEffect(evt.target.value);
   }
 }
 
@@ -159,6 +219,10 @@ const initUploadForm = () => {
   fileFieldElement.addEventListener('change', onFileInputChange);
   // Настройка валидации для формы
   initFormValidation();
+  // Инициализация масштабирования
+  initImageScale(imageElement);
+  // Инициализация эффектов
+  initImageEffects(imageElement);
 };
 
 export {initUploadForm};

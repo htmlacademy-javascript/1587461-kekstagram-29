@@ -1,5 +1,7 @@
 import {setImgProps} from './functions.js';
 
+const pictureContainer = document.querySelector('.pictures');
+
 /*
  * Функция на основе шаблона #picture создает и возвращает DOM-элемент, соответствующей фотографии
  */
@@ -34,16 +36,27 @@ const createPicture = (photo, showBigPicture) => {
 };
 
 /*
+ * Удаляет опубликованные ранее картинки
+ * Нужна для того, чтобы не замножать картинки при изменении фильтра
+ */
+const removePictures = () => {
+  const pictures = pictureContainer.querySelectorAll('.picture');
+  pictures.forEach((picture) => picture.remove());
+};
+
+/*
  * Функция отображает фотографии на странице.
  * Через параметр photos передается массив данных о фотографиях,
  * параметр showBigPicture - ссылка на функцию, вызываемую при клике на миниатюре.
  */
 const showPictures = (photos, showBigPicture) => {
-  const pictureContainer = document.querySelector('.pictures');
   const pictureFragment = document.createDocumentFragment();
   photos.forEach((photo) => {
     pictureFragment.append(createPicture(photo, showBigPicture));
   });
+  // Удаление опубликованных ранее картинок
+  removePictures();
+  // Публикация новых
   pictureContainer.appendChild(pictureFragment);
 };
 

@@ -21,11 +21,11 @@ const INIT_EFFECT_NAME = NONE_EFFECT_NAME;
 const sliderElement = document.querySelector('.effect-level__slider');
 // Элемент, в котором хранится значение слайдера
 const effectLevelElement = document.querySelector('.effect-level__value');
-
-// Сюда сохраняется ссылка на текущий выбранный эффект для удобства
-let currentEffect;
 // Ссылка на кортинку, к которой применяется эффект
-let effectImageElement;
+const effectImageElement = document.querySelector('.img-upload__preview img');
+
+// Сюда сохраняется ссылка на текущий выбранный эффект
+let currentEffect;
 
 /*
  * Функция возвращает объект с эффектом из массива по названию
@@ -54,7 +54,7 @@ const resetEffect = () => {
   effectImageElement.className = '';
   effectLevelElement.value = '';
   // Если эффект отсутствует, то слайдер скрывается
-  showHideObject(sliderElement, false);
+  showHideObject(sliderElement.parentNode, false);
 };
 
 /*
@@ -103,7 +103,7 @@ const changeEffect = (newEffectName = INIT_EFFECT_NAME) => {
     // Слайдер отображается только в том случае,
     // если до этого не было эффекта, а теперь есть
     if (previousEffectName === NONE_EFFECT_NAME) {
-      showHideObject(sliderElement, true);
+      showHideObject(sliderElement.parentNode, true);
     }
   }
 };
@@ -112,8 +112,7 @@ const changeEffect = (newEffectName = INIT_EFFECT_NAME) => {
  * Инициализация работы с эффектами, выполняется один раз в самом начале.
  * В качестве параметра передается изображение, к которому применяются эффекты
  */
-const initImageEffects = (imageElement) => {
-  effectImageElement = imageElement;
+const initImageEffects = () => {
   currentEffect = getEffectByName(NONE_EFFECT_NAME);
   // Подготовка настроек слайдера
   const initSliderProps = getSliderProps();

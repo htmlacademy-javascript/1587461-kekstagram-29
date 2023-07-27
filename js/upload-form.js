@@ -1,12 +1,14 @@
 import {isEscButton, isFocusedElement, showHideModalElement,
   checkArrayHasDuplicates, processEvents} from './functions.js';
 
-import {initImageScale, setImageScale,
-  incImageScale} from './image-scale.js';
+import {setImageScale, incImageScale} from './image-scale.js';
 
 import {initImageEffects, addSliderEventListener, removeSliderEventListener,
   changeEffect} from './image-effect.js';
 
+import {showSuccessMessage, showErrorMessage} from './messages.js';
+
+import {sendData} from './data.js';
 
 // Хэштеги разделяются пробелами в списке
 const HASHTAG_SEPARATOR = ' ';
@@ -21,14 +23,23 @@ const HASTAG_TOO_MUCH_ERROR_MESSAGE =
 const HASTAG_HAS_DUPLICATES_ERROR_MESSAGE = 'Хэш-теги повторяются';
 const HASTAG_INCORRECT_ERROR_MESSAGE = 'Введён некорректный хэш-тег';
 
+// Тексты на кнопке "Опубликовать"
+const SubmitButtonText = {
+  IDLE: 'Опубликовать',
+  SENDING: 'Отправляю...'
+};
+
+// Количество процентов масштаба
+// за один шаг увеличения / уменьшения изображения
+const SCALE_PERCENT_PER_STEP = 25;
+
 const overlayElement = document.querySelector('.img-upload__overlay');
 const formElement = document.querySelector('.img-upload__form');
 const hashtagFieldElement = document.querySelector('.text__hashtags');
 const commentFieldElement = document.querySelector('.text__description');
 const closeButtonElement = document.querySelector('#upload-cancel');
+const submitButtonElement = document.querySelector('.img-upload__submit');
 
-// Изображение предварительного просмотра
-const imageElement = document.querySelector('.img-upload__preview');
 // Кнопка увеличения размера изображения
 const enlargeButtonElement = document.querySelector('.scale__control--bigger');
 // Кнопка уменьшения размера изображения
@@ -93,6 +104,22 @@ const checkTextFieldFocused = () =>
   isFocusedElement(hashtagFieldElement) || isFocusedElement(commentFieldElement);
 
 /*
+ * Функция блокирует / разблокирует кнопку "Отправить"
+ */
+const blockSubmitButton = (block, caption) => {
+  submitButtonElement.disabled = block;
+  submitButtonElement.textContent = caption;
+};
+
+/*
+ * Вызывается в случае успешной отправки данных на сервер
+ */
+const sendDataSuccess = () => {
+  hideModalOverlay();
+  showSuccessMessage();
+};
+
+/*
  * Обработчик события выбора файла
  */
 function onFileInputChange() {
@@ -123,8 +150,14 @@ function onEscKeyDown(evt) {
  * Обработчик события submit формы редактирования изображения
  */
 function onFormSubmit(evt) {
-  if (!pristine.validate()) {
-    evt.preventDefault();
+  evt.preventDefault();
+  const isValid = pristine.validate();
+  if (isValid) {
+    blockSubmitButton(true, SubmitButtonText.SENDING);
+    sendData(new FormData(evt.target))
+      .then(sendDataSuccess)
+      .catch(showErrorMessage)
+      .finally(blockSubmitButton(false, SubmitButtonText.IDLE));
   }
 }
 
@@ -132,14 +165,14 @@ function onFormSubmit(evt) {
  * Обработчик нажания на кнопку увеличения масштаба
  */
 function onEnlargeButtonClick() {
-  incImageScale(1);
+  incImageScale(SCALE_PERCENT_PER_STEP);
 }
 
 /*
  * Обработчик нажания на кнопку уменьшения масштаба
  */
 function onReduceButtonClick() {
-  incImageScale(-1);
+  incImageScale(-SCALE_PERCENT_PER_STEP);
 }
 
 /*
@@ -220,9 +253,9 @@ const initUploadForm = () => {
   // Настройка валидации для формы
   initFormValidation();
   // Инициализация масштабирования
-  initImageScale(imageElement);
+  setImageScale();
   // Инициализация эффектов
-  initImageEffects(imageElement);
+  initImageEffects();
 };
 
 export {initUploadForm};

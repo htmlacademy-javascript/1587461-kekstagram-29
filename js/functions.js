@@ -4,6 +4,15 @@
 const DECIMAL_BASE = 10;
 
 /*
+ * Функция преобразует строку в целое число в десятичной системе считсления.
+ * Использовать стандартную функцию parseInt неудобно из-за второго параметра,
+ * который задает систему счисления. Так как преобразование используется в
+ * нескольких модулях и всегда в десятичную систему, то показалось логичным
+ * сделать такую функцию для повторного использования только с одним параметром
+ */
+export const parseDecimalInt = (str) => parseInt(str, DECIMAL_BASE);
+
+/*
  * Функция проверяет длину строки str.
  * Если длина меньше или равна значению maxLength, возвращается true.
  * В противном случае возвращается false.
@@ -47,13 +56,13 @@ export const extractDigitsFromStr = (str) => {
   str = str.toString();
   // В цикле разбирается каждый символ строка
   for (let i = 0; i < str.length; i++) {
-    const currentChar = parseInt(str.at(i), DECIMAL_BASE);
+    const currentChar = parseDecimalInt(str.at(i));
     if (!Number.isNaN(currentChar)) {
       result += str.at(i);
     }
   }
   // В заключении строка из цифр преобразуется в целое число
-  return parseInt(result, DECIMAL_BASE);
+  return parseDecimalInt(result);
 };
 
 /*
@@ -198,4 +207,25 @@ export const checkArrayHasDuplicates = (values, caseSensitive = false) => {
   // Если количество уникальных элементов меньше общего количества,
   // значит есть дубликаты
   return distinctCount < checkValues.length;
+};
+
+/*
+ * Функция выполняет установку / удаление обработчиков событий.
+ * Параметр add определяет, что именно нужно делать. Если true -
+ * обработчики добавляются, в противном случае удаляются.
+ * Элементы, типы событий и ссылки на функции передаются в виде
+ * массива объектов. Из-за обработчиков для каждого модального элемента,
+ * которвые необходимо постоянно добавлять и удалять, такое решение
+ * показалось привлекательным. Оно гарантирует, что один раз описываются
+ * события и просто вызывается функция. Ничего не потеряется и не будет
+ * утечек памяти.
+ */
+export const processEvents = (events, add) => {
+  events.forEach(({element, type, listener}) => {
+    if (add) {
+      element.addEventListener(type, listener);
+    } else {
+      element.removeEventListener(type, listener);
+    }
+  });
 };

@@ -40,7 +40,9 @@ const createPicture = (photo, showBigPicture) => {
  * Нужна для того, чтобы не замножать картинки при изменении фильтра
  */
 const removePictures = () => {
+  // Ищем все отрисованные ранее картинки
   const pictures = pictureContainer.querySelectorAll('.picture');
+  // и удаляем их
   pictures.forEach((picture) => picture.remove());
 };
 

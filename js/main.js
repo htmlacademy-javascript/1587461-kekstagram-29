@@ -13,6 +13,8 @@ getData()
     // Первая отрисовка картинок
     showPictures(filterPhotos(), showBigPicture);
     // Установка обработчика щелчка по кнопкам выбора фильтра
+    // В качестве параметров передаются функции отрисовки картинок и
+    // обработки клика по картинке
     setOnFilterClick(showPictures, showBigPicture);
   })
   .catch(

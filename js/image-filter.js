@@ -33,10 +33,13 @@ const sortDiscussed = (photo1, photo2) =>
  * Фильтрация массива фотографий в соответствии с выбранным фильтром
  */
 const filterPhotos = () => {
+  // Создание копии массива фотографий, чтобы не испортить исходный
   let filteredPhotos = photos.slice();
+  // Если рандомный фильтр
   if (currentFilter === Filter.RANDOM) {
     filteredPhotos = filteredPhotos.sort(sortRandom).slice(0, RANDOM_PICTURES_COUNT);
   } else if (currentFilter === Filter.DISCUSSED) {
+    // Если сортировка по популярности (количеству комментариев)
     filteredPhotos = filteredPhotos.sort(sortDiscussed);
   }
   return filteredPhotos;

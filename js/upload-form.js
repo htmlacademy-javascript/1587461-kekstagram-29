@@ -1,5 +1,5 @@
 import {isEscButton, isFocusedElement, showHideModalElement,
-  checkArrayHasDuplicates, processEvents} from './functions.js';
+  checkArrayHasDuplicates, processEvents, checkFileType} from './functions.js';
 
 import {setImageScale, incImageScale} from './image-scale.js';
 
@@ -9,6 +9,9 @@ import {initImageEffects, addSliderEventListener, removeSliderEventListener,
 import {showSuccessMessage, showErrorMessage} from './messages.js';
 
 import {sendData} from './data.js';
+
+// Массив допустимых расширений графических файлов для загрузки
+const IMAGE_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif'];
 
 // Хэштеги разделяются пробелами в списке
 const HASHTAG_SEPARATOR = ' ';
@@ -33,6 +36,7 @@ const SubmitButtonText = {
 // за один шаг увеличения / уменьшения изображения
 const SCALE_PERCENT_PER_STEP = 25;
 
+const fileFieldElement = document.querySelector('#upload-file');
 const overlayElement = document.querySelector('.img-upload__overlay');
 const formElement = document.querySelector('.img-upload__form');
 const hashtagFieldElement = document.querySelector('.text__hashtags');
@@ -120,9 +124,33 @@ const sendDataSuccess = () => {
 };
 
 /*
+ * Проверяет, относится ли файл с именем fileName к одному из заданных типов
+ * графических файлов
+ */
+const isImageFile = (fileName) => checkFileType(fileName, IMAGE_FILE_TYPES);
+
+/*
  * Обработчик события выбора файла
  */
 function onFileInputChange() {
+  // Получаем выбранный файл
+  const file = fileFieldElement.files[0];
+  // На всякий случай проверка, был ли действительно выбран графический файл
+  // В противном случае выход из обработчика без показа формы
+  // Какой смысл пытаться загружать в форму предпросмотра не графический файл
+  if (!file || !isImageFile(file.name)) {
+    return;
+  }
+  // Получаем картинку предпросмотра и помещаем в нее выбранный файл
+  const photoElement = document.querySelector('.img-upload__preview img');
+  photoElement.src = URL.createObjectURL(file);
+  // Также получаем все миниатюры с эффектами и в цикле подставляем в них
+  // выбранное изображение
+  const effectsElements = document.querySelectorAll('.effects__preview');
+  effectsElements.forEach((effect) => {
+    effect.style.backgroundImage = `url('${photoElement.src}')`;
+  });
+  // Показ формы предпросмотра
   showModalOverlay();
 }
 
@@ -247,8 +275,6 @@ const initFormValidation = () => {
 };
 
 const initUploadForm = () => {
-  // Установка обработчика на изменение поля с именем файла
-  const fileFieldElement = document.querySelector('#upload-file');
   fileFieldElement.addEventListener('change', onFileInputChange);
   // Настройка валидации для формы
   initFormValidation();

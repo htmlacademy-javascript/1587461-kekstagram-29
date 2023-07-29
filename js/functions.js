@@ -205,3 +205,10 @@ export function debounce(callback, timeoutDelay = 500) {
     // пока действие совершается чаще, чем переданная задержка timeoutDelay
   };
 }
+
+/*
+ * Функция проверяет, соответствует ли полное имя файла fileName
+ * одному из заданных в массиве fileTypes типу
+ */
+export const checkFileType = (fileName, fileTypes) =>
+  fileTypes.some((ext) => fileName.toLowerCase().endsWith(ext));
